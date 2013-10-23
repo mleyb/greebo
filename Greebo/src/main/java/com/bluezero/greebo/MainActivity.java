@@ -104,10 +104,31 @@ public class MainActivity extends Activity {
         return true;
     }
 
+    private void Test() {
+        Contact contact = new Contact();
+        contact.DeviceName = "Test";
+        contact.DeviceAddress = "Test";
+
+        MobileServiceClient client = MobileServiceClientFactory.createAzureClient(MainActivity.this, null);
+
+        client.getTable(Contact.class).insert(contact, new TableOperationCallback<Contact>() {
+            public void onCompleted(Contact entity, Exception exception, ServiceFilterResponse response) {
+                if (exception == null) {
+                    Toast.makeText(MainActivity.this, "Inserted OK!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Insert FAILED!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_scan:
+
+                Test();
+
                 scanLeDevice(true);
                 Toast.makeText(MainActivity.this, "Scan started", Toast.LENGTH_SHORT).show();
                 break;
@@ -158,7 +179,9 @@ public class MainActivity extends Activity {
                     contact.DeviceName = deviceName;
                     contact.DeviceAddress = address;
 
-                    _client.getTable(Contact.class).insert(contact, new TableOperationCallback<Contact>() {
+                    MobileServiceClient client = MobileServiceClientFactory.createAzureClient(MainActivity.this, null);
+
+                    client.getTable(Contact.class).insert(contact, new TableOperationCallback<Contact>() {
                         public void onCompleted(Contact entity, Exception exception, ServiceFilterResponse response) {
                             if (exception == null) {
                                 Toast.makeText(MainActivity.this, "Inserted OK!", Toast.LENGTH_SHORT).show();

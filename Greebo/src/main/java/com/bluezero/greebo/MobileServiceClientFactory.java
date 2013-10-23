@@ -20,9 +20,9 @@ public class MobileServiceClientFactory {
             client = new MobileServiceClient(Constants.ServiceUri, Constants.ApiKey, context);
             //client = client.withFilter(new AuthenticationFilter(client));
 
-            if (user != null) {
-                client.setCurrentUser(user);
-            }
+            //if (user != null) {
+                //client.setCurrentUser(user);
+            //}
         }
         catch (MalformedURLException e) {
             e.printStackTrace();
