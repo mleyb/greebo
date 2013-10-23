@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Greebo/Greebo.iml" filepath="$PROJECT_DIR$/Greebo/Greebo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/greebo.iml" filepath="$PROJECT_DIR$/greebo.iml" />
+    </modules>
+  </component>
+</project>
+
