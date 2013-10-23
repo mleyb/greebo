@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="mobileservices-1.0.1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/Greebo/libs/mobileservices-1.0.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
