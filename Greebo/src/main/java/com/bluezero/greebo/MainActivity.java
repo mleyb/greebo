@@ -1,19 +1,29 @@
 package com.bluezero.greebo;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
     private BluetoothAdapter _bluetoothAdapter;
+
+    private BluetoothLeScanResultReceiver _receiver;
+
+    private AlarmManager _am;
+
+    private PendingIntent _scanIntent;
 
     private static final int REQUEST_ENABLE_BT = 1;
 
@@ -40,6 +50,16 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Bluetooth is not supported on this device", Toast.LENGTH_SHORT).show();
             finish();
         }
+
+        IntentFilter filter = new IntentFilter(BluetoothLeScanResultReceiver.ACTION);
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        _receiver = new BluetoothLeScanResultReceiver();
+        registerReceiver(_receiver, filter);
+
+        _scanIntent = PendingIntent.getBroadcast(this, 0, new Intent("DOSCAN"), 0);
+
+        _am = (AlarmManager)(this.getSystemService(Context.ALARM_SERVICE));
+        _am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 20000, _scanIntent);
     }
 
     @Override
@@ -54,6 +74,13 @@ public class MainActivity extends Activity {
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        _am.cancel(_scanIntent);
+        unregisterReceiver(_receiver);
+        super.onDestroy();
     }
 
     @Override
@@ -77,6 +104,8 @@ public class MainActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_scan:
+
+
 
                 //Test();
 
