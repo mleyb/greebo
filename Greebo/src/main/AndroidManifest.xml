@@ -28,7 +28,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".BluetoothLeService" android:enabled="true"/>
+        <service android:name=".BluetoothLeService" android:exported="false"/>
+        <service android:name=".BluetoothLeScanService" android:exported="false"/>
     </application>
 
 </manifest>
