@@ -17,9 +17,12 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+    private static final String TAG = MainActivity.class.getSimpleName();
+
     private BluetoothAdapter _bluetoothAdapter;
 
-    private BluetoothLeScanResultReceiver _receiver;
+    private AlarmReceiver _alarmReceiver;
+    private BluetoothLeScanResultReceiver _scanReceiver;
 
     private AlarmManager _am;
 
@@ -51,15 +54,17 @@ public class MainActivity extends Activity {
             finish();
         }
 
-        IntentFilter filter = new IntentFilter(BluetoothLeScanResultReceiver.ACTION);
-        filter.addCategory(Intent.CATEGORY_DEFAULT);
-        _receiver = new BluetoothLeScanResultReceiver();
-        registerReceiver(_receiver, filter);
-
-        _scanIntent = PendingIntent.getBroadcast(this, 0, new Intent("DOSCAN"), 0);
+        _scanIntent = PendingIntent.getBroadcast(this, 0, new Intent(AlarmReceiver.ACTION), 0);
 
         _am = (AlarmManager)(this.getSystemService(Context.ALARM_SERVICE));
-        _am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 20000, _scanIntent);
+
+        _alarmReceiver = new AlarmReceiver();
+        registerReceiver(_alarmReceiver, new IntentFilter(AlarmReceiver.ACTION));
+
+        IntentFilter filter = new IntentFilter(BluetoothLeScanResultReceiver.ACTION);
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        _scanReceiver = new BluetoothLeScanResultReceiver();
+        registerReceiver(_scanReceiver, filter);
     }
 
     @Override
@@ -78,8 +83,9 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        _am.cancel(_scanIntent);
-        unregisterReceiver(_receiver);
+        descheduleScan();
+        unregisterReceiver(_alarmReceiver);
+        unregisterReceiver(_scanReceiver);
         super.onDestroy();
     }
 
@@ -104,25 +110,25 @@ public class MainActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_scan:
-
-
-
-                //Test();
-
-                //scanLeDevice(true);
-                Toast.makeText(MainActivity.this, "Scan started", Toast.LENGTH_SHORT).show();
-
-                Intent intent = new Intent(this, BluetoothLeScanService.class);
-                startService(intent);
-
+                scheduleScan();
+                Toast.makeText(this, "Scan scheduled", Toast.LENGTH_SHORT).show();
                 break;
 
             case R.id.menu_stop:
-                //scanLeDevice(false);
-                //Toast.makeText(MainActivity.this, "Scan stopped", Toast.LENGTH_SHORT).show();
+                descheduleScan();
+                Toast.makeText(this, "Scan descheduled", Toast.LENGTH_SHORT).show();
                 break;
         }
+
         return true;
+    }
+
+    private void scheduleScan() {
+        _am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 20000, _scanIntent);
+    }
+
+    private void descheduleScan() {
+        _am.cancel(_scanIntent);
     }
 
     public class BluetoothLeScanResultReceiver extends BroadcastReceiver {
@@ -134,6 +140,18 @@ public class MainActivity extends Activity {
             String address = intent.getStringExtra(BluetoothLeScanService.PARAM_DEVICE_NAME);
 
             Toast.makeText(MainActivity.this, "Found: " + deviceName + " (" + address + ")", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public class AlarmReceiver extends BroadcastReceiver {
+        public static final String ACTION = "AlarmElapsed";
+
+        @Override
+        public void onReceive(Context c, Intent i) {
+            Intent intent = new Intent(MainActivity.this, BluetoothLeScanService.class);
+            startService(intent);
+
+            scheduleScan();
         }
     }
 }

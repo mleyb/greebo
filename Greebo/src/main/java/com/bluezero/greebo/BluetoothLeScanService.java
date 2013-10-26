@@ -14,6 +14,8 @@ public class BluetoothLeScanService extends IntentService {
 
     private Handler _handler;
 
+    private Object _scanLock = new Object();
+
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD_MS = 10000;
 
@@ -54,11 +56,23 @@ public class BluetoothLeScanService extends IntentService {
                 public void run() {
                     _scanning = false;
                     _bluetoothAdapter.stopLeScan(_leScanCallback);
+
+                    synchronized (_scanLock) {
+                        _scanLock.notifyAll();
+                    }
                 }
             }, SCAN_PERIOD_MS);
 
             _scanning = true;
             _bluetoothAdapter.startLeScan(_leScanCallback);
+
+            synchronized (_scanLock) {
+                try {
+                    _scanLock.wait();
+                }
+                catch (InterruptedException e) {
+                }
+            }
         }
         else {
             _scanning = false;
