@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.os.Handler;
 
 public class BluetoothLeScanService extends IntentService {
+    private static final String TAG = BluetoothLeScanService.class.getSimpleName();
+
     private BluetoothAdapter _bluetoothAdapter;
     private boolean _scanning;
 

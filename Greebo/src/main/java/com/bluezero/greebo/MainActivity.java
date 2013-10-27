@@ -2,6 +2,7 @@ package com.bluezero.greebo;
 
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.ListActivity;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
@@ -12,12 +13,22 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+import java.util.ArrayList;
+
+public class MainActivity extends ListActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
+
+    private LeDeviceListAdapter _listAdapter;
 
     private BluetoothAdapter _bluetoothAdapter;
 
@@ -65,6 +76,16 @@ public class MainActivity extends Activity {
         filter.addCategory(Intent.CATEGORY_DEFAULT);
         _scanReceiver = new BluetoothLeScanResultReceiver();
         registerReceiver(_scanReceiver, filter);
+
+        _listAdapter = new LeDeviceListAdapter();
+        setListAdapter(_listAdapter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //scanLeDevice(false);
+        _listAdapter.clear();
     }
 
     @Override
@@ -112,11 +133,13 @@ public class MainActivity extends Activity {
             case R.id.menu_scan:
                 scheduleScan();
                 Toast.makeText(this, "Scan scheduled", Toast.LENGTH_SHORT).show();
+                Log.i(TAG, "Scan scheduled");
                 break;
 
             case R.id.menu_stop:
                 descheduleScan();
                 Toast.makeText(this, "Scan descheduled", Toast.LENGTH_SHORT).show();
+                Log.i(TAG, "Scan desceduled");
                 break;
         }
 
@@ -131,15 +154,97 @@ public class MainActivity extends Activity {
         _am.cancel(_scanIntent);
     }
 
+    private class LeDeviceListAdapter extends BaseAdapter {
+        private ArrayList<Contact> _devices;
+        private LayoutInflater _inflator;
+
+        public LeDeviceListAdapter() {
+            super();
+            _devices = new ArrayList<Contact>();
+            _inflator = MainActivity.this.getLayoutInflater();
+        }
+
+        public void addDevice(Contact device) {
+            if (!_devices.contains(device)) {
+                _devices.add(device);
+            }
+        }
+
+        public Contact getDevice(int position) {
+            return _devices.get(position);
+        }
+
+        public void clear() {
+            _devices.clear();
+        }
+
+        @Override
+        public int getCount() {
+            return _devices.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return _devices.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return i;
+        }
+
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+            ViewHolder viewHolder;
+
+            // General ListView optimization code.
+            if (view == null) {
+                view = _inflator.inflate(R.layout.listitem_device, null);
+                viewHolder = new ViewHolder();
+                viewHolder.deviceAddress = (TextView)view.findViewById(R.id.device_address);
+                viewHolder.deviceName = (TextView)view.findViewById(R.id.device_name);
+                view.setTag(viewHolder);
+            }
+            else {
+                viewHolder = (ViewHolder)view.getTag();
+            }
+
+            Contact device = _devices.get(i);
+            final String deviceName = device.DeviceName;
+
+            if (deviceName != null && deviceName.length() > 0) {
+                viewHolder.deviceName.setText(deviceName);
+            }
+            else {
+                viewHolder.deviceName.setText("Unknown device");
+            }
+
+            viewHolder.deviceAddress.setText(device.DeviceAddress);
+
+            return view;
+        }
+    }
+
     public class BluetoothLeScanResultReceiver extends BroadcastReceiver {
         public static final String ACTION = "BluetoothLeScanResult";
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            String deviceName = intent.getStringExtra(BluetoothLeScanService.PARAM_DEVICE_NAME);
-            String address = intent.getStringExtra(BluetoothLeScanService.PARAM_DEVICE_NAME);
+            final Contact contact = new Contact();
+            contact.DeviceName = intent.getStringExtra(BluetoothLeScanService.PARAM_DEVICE_NAME);
+            contact.DeviceAddress = intent.getStringExtra(BluetoothLeScanService.PARAM_DEVICE_NAME);
 
-            Toast.makeText(MainActivity.this, "Found: " + deviceName + " (" + address + ")", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "Device found '" + contact.DeviceName + "' (" + contact.DeviceAddress + ")");
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    _listAdapter.addDevice(contact);
+                    _listAdapter.notifyDataSetChanged();
+                }
+            });
+
+            Toast.makeText(MainActivity.this, "Found: " + contact.DeviceName + " (" + contact.DeviceAddress + ")", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -148,10 +253,17 @@ public class MainActivity extends Activity {
 
         @Override
         public void onReceive(Context c, Intent i) {
+            Log.d(TAG, "Alarm triggered. Starting scan");
+
             Intent intent = new Intent(MainActivity.this, BluetoothLeScanService.class);
             startService(intent);
 
             scheduleScan();
         }
+    }
+
+    static class ViewHolder {
+        TextView deviceName;
+        TextView deviceAddress;
     }
 }
