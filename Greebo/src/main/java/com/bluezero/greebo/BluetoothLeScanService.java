@@ -18,8 +18,8 @@ public class BluetoothLeScanService extends IntentService {
 
     private Object _scanLock = new Object();
 
-    // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD_MS = 10000;
+    // Stops scanning after 5 seconds.
+    private static final long SCAN_PERIOD_MS = 5000;
 
     public static final String PARAM_DEVICE_NAME = "DeviceName";
     public static final String PARAM_DEVICE_ADDRESS = "DeviceAddress";

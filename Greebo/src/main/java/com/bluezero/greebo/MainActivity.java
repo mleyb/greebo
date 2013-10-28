@@ -232,7 +232,7 @@ public class MainActivity extends ListActivity {
         public void onReceive(Context context, Intent intent) {
             final Contact contact = new Contact();
             contact.DeviceName = intent.getStringExtra(BluetoothLeScanService.PARAM_DEVICE_NAME);
-            contact.DeviceAddress = intent.getStringExtra(BluetoothLeScanService.PARAM_DEVICE_NAME);
+            contact.DeviceAddress = intent.getStringExtra(BluetoothLeScanService.PARAM_DEVICE_ADDRESS);
 
             Log.i(TAG, "Device found '" + contact.DeviceName + "' (" + contact.DeviceAddress + ")");
 
