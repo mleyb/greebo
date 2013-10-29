@@ -2,9 +2,6 @@ package com.bluezero.greebo;
 
 import java.util.HashMap;
 
-/**
- * Created by markleybourne on 21/10/2013.
- */
 public class GattAttributes {
     private static HashMap<String, String> attributes = new HashMap();
     public static String HEART_RATE_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb";
