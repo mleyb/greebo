@@ -7,9 +7,6 @@ import com.microsoft.windowsazure.mobileservices.MobileServiceUser;
 
 import java.net.MalformedURLException;
 
-/**
- * Created by LeybourneM on 23/10/13.
- */
 public class MobileServiceClientFactory {
     public static MobileServiceClient createAzureClient(Context context, MobileServiceUser user) {
 
