@@ -23,6 +23,10 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import com.microsoft.windowsazure.mobileservices.ServiceFilterResponse;
+import com.microsoft.windowsazure.mobileservices.TableOperationCallback;
+
 import java.util.ArrayList;
 
 public class MainActivity extends ListActivity {
@@ -38,6 +42,8 @@ public class MainActivity extends ListActivity {
     private AlarmManager _am;
 
     private PendingIntent _scanIntent;
+
+    private MobileServiceClient _client;
 
     private static final int REQUEST_ENABLE_BT = 1;
 
@@ -79,6 +85,8 @@ public class MainActivity extends ListActivity {
 
         _listAdapter = new LeDeviceListAdapter();
         setListAdapter(_listAdapter);
+
+        _client = MobileServiceClientFactory.createAzureClient(this, null);
     }
 
     @Override
@@ -241,10 +249,21 @@ public class MainActivity extends ListActivity {
                 public void run() {
                     _listAdapter.addDevice(contact);
                     _listAdapter.notifyDataSetChanged();
+
+                    Toast.makeText(MainActivity.this, "Found: " + contact.DeviceName + " (" + contact.DeviceAddress + ")", Toast.LENGTH_SHORT).show();
                 }
             });
 
-            Toast.makeText(MainActivity.this, "Found: " + contact.DeviceName + " (" + contact.DeviceAddress + ")", Toast.LENGTH_SHORT).show();
+            _client.getTable(Contact.class).insert(contact, new TableOperationCallback<Contact>() {
+                public void onCompleted(Contact entity, Exception exception, ServiceFilterResponse response) {
+                    if (exception == null) {
+                        Toast.makeText(MainActivity.this, "Saved!", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        Toast.makeText(MainActivity.this, "Error!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         }
     }
 
